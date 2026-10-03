@@ -36,9 +36,7 @@ The deployments and lifecycle transactions below were submitted by the authorize
 - ABSENT aggregate status: ABSENT
 - fresh certificate validation: true
 
-The ABSENT source is the immutable `registry_no_hit.txt` fixture. The certificate was valid at consume time and then became invalid when the later PRESENT observation terminalized the query state.
-
-At final verification, `get_observation(1, 1)` still reports the original ABSENT hash and unexpired timestamp. The gate reports the action consumed, while `is_absence_valid(1, 1, ...)` returns false after the PRESENT terminal observation, as designed.
+The ABSENT source is the immutable `registry_no_hit.txt` fixture. The certificate was valid at consume time. The separate PRESENT lifecycle below uses query `2`, so it does not mutate query `1`. The same-query `ABSENT -> PRESENT -> old ABSENT invalid` invariant is covered by Direct Mode. Query `1`'s historical observation remains append-only, and its certificate becomes invalid after its recorded expiry.
 
 ## Consumer proof
 
