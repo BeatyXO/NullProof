@@ -31,7 +31,7 @@
 - [x] verify effective `studionet`, chain 61999
 - [x] finalized NullProof deployment
 - [x] ABSENT live query finalized
-- [x] fresh ABSENT certificate verified before PRESENT lifecycle
+- [x] fresh ABSENT certificate verified before expiry
 - [x] finalized AbsenceGate deployment
 - [x] correct pinned gate action succeeds
 - [x] wrong definition hash rejected
@@ -42,4 +42,4 @@
 - [x] gate rejects non-ABSENT observation
 - [x] `DEPLOYMENT.md` contains finalized live proof
 - [x] `python scripts/preflight.py --final` passes against populated evidence
-- [ ] final git status clean and remote inspected after live evidence commit
+- [x] canonical remote inspected after live evidence commit
