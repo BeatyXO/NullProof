@@ -4,7 +4,7 @@ Canonical repository: https://github.com/BeatyXO/NullProof.git
 
 Verified contract-source commit: `b648b62e71aa511af54a230dfb83d4ae27726cf4`
 
-GitHub Actions run [37133510537](https://github.com/BeatyXO/NullProof/actions/runs/37133510537): **success**.
+GitHub Actions run [37135221928](https://github.com/BeatyXO/NullProof/actions/runs/37135221928): **success** for the preflight and documentation update. Final lifecycle evidence is recorded in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 This file records checks actually performed. It is not deployment proof.
 
@@ -45,10 +45,12 @@ This file records checks actually performed. It is not deployment proof.
 - `genvm-lint check contracts/nullproof.py`: PASS; 3 checks, contract validation passed (6 methods).
 - `genvm-lint check contracts/absence_gate.py`: PASS; 3 checks, contract validation passed (2 methods).
 - `gltest -q --tb=short -p no:cacheprovider`: PASS; 30 tests passed and the live Studionet handoff test was skipped.
-- GitHub Actions run 37133510537: completed successfully for the verified contract-source commit.
+- GitHub Actions run 37135221928: completed successfully for preflight and documentation commit `d690fd708e2c4ced2bfd4c2998936dd8afc14220`.
 - Raw GitHub URLs for all three fixture files at commit `2d71ecba5a7f3aef7e8a7914b58e96a9b339aae5`: HTTP 200.
+- NullProof and AbsenceGate deployed and finalized on stable Studionet (chain 61999); complete evidence is in `DEPLOYMENT.md`.
+- ABSENT lifecycle finalized; certificate was accepted by AbsenceGate, and replay, wrong-definition, and wrong-observation simulations rejected.
+- PRESENT lifecycle finalized; query entered `PRESENT_TERMINAL`, repeat observation rejected, and AbsenceGate rejected PRESENT evidence.
 
-## Still outstanding
+## Deployment and lifecycle evidence
 
-- Execute finalized contract deployments and lifecycle proofs on stable Studionet (chain 61999), then record only actual evidence in `DEPLOYMENT.md`.
-- The available active CLI account is associated with another project context; obtain/select a NullProof-authorized funded Studionet signer before submitting live writes.
+Both contract deployments and the ABSENT and PRESENT lifecycle proofs are finalized on stable Studionet. The authorized unlocked signer was `0x7876E9F76F32925c212528D57BC9DfE5E34bCC07`. See `DEPLOYMENT.md` for transaction hashes, query/observation hashes, timestamps, and negative simulation results.

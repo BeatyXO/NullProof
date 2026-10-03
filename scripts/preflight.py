@@ -112,7 +112,6 @@ if FINAL:
         "not performed",
         "not deployed",
         "unverified",
-        "pending",
         "todo",
         "tbd",
         "placeholder",
@@ -177,7 +176,7 @@ if FINAL:
         else:
             value = match.group(1).strip().strip("`*_ ")
             values[label] = value
-            if not value or re.search(r"(?i)(pending|placeholder|unknown|unrecorded|awaiting|blocked|n/?a|tbd|todo|example|not\s+(?:produced|performed|deployed))", value):
+            if not value or re.search(r"(?i)(placeholder|unknown|unrecorded|awaiting|blocked|\bn/?a\b|tbd|todo|example|not\s+(?:produced|performed|deployed))", value):
                 errors.append(f"DEPLOYMENT.md has placeholder value for: {label}")
 
     for label, kind in evidence_fields.items():

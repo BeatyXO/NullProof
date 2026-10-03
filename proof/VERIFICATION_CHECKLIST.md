@@ -29,17 +29,17 @@
 - [x] Direct Mode: 30 passed, 1 live-only test skipped
 - [x] GitHub Actions green
 - [x] verify effective `studionet`, chain 61999
-- [ ] finalized NullProof deployment
-- [ ] ABSENT live query finalized
-- [ ] fresh ABSENT certificate verified
-- [ ] finalized AbsenceGate deployment
-- [ ] correct pinned gate action succeeds
-- [ ] wrong definition hash rejected
-- [ ] wrong observation hash rejected
-- [ ] replay rejected
-- [ ] PRESENT live query finalized
-- [ ] PRESENT query becomes terminal
-- [ ] gate rejects non-ABSENT observation
-- [ ] `DEPLOYMENT.md` contains finalized live proof
-- [ ] `python scripts/preflight.py --final` passes against populated evidence
+- [x] finalized NullProof deployment
+- [x] ABSENT live query finalized
+- [x] fresh ABSENT certificate verified before PRESENT lifecycle
+- [x] finalized AbsenceGate deployment
+- [x] correct pinned gate action succeeds
+- [x] wrong definition hash rejected
+- [x] wrong observation hash rejected
+- [x] replay rejected
+- [x] PRESENT live query finalized
+- [x] PRESENT query becomes terminal
+- [x] gate rejects non-ABSENT observation
+- [x] `DEPLOYMENT.md` contains finalized live proof
+- [x] `python scripts/preflight.py --final` passes against populated evidence
 - [ ] final git status clean and remote inspected after live evidence commit
