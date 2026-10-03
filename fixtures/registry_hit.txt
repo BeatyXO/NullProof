@@ -1,0 +1,9 @@
+Official Product Recall Registry — complete current index
+
+Recall notice R-2026-77
+Product: Product X battery pack
+Status: RECALLED FOR SAFETY
+Reason: overheating risk
+Issued: 2026-10-03
+
+Consumers should stop using Product X battery pack and follow the return instructions.

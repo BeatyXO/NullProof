@@ -1,0 +1,9 @@
+Official Product Recall Registry — complete current index
+
+Entries:
+- Product A portable charger — recall R-2026-11
+- Product B kitchen adapter — recall R-2026-19
+- Product C battery case — recall R-2026-41
+
+This file is the complete fixture index for the NullProof live demonstration.
+There is no recall entry for Product X battery pack in this fixture.
