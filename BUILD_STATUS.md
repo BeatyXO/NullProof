@@ -1,6 +1,12 @@
 # Build status
 
-This file records checks actually performed in the current GenLayer-enabled environment. It is not deployment proof.
+Canonical repository: https://github.com/BeatyXO/NullProof.git
+
+Verified contract-source commit: `b648b62e71aa511af54a230dfb83d4ae27726cf4`
+
+GitHub Actions run [37133510537](https://github.com/BeatyXO/NullProof/actions/runs/37133510537): **success**.
+
+This file records checks actually performed. It is not deployment proof.
 
 ## Implemented here
 
@@ -34,15 +40,15 @@ This file records checks actually performed in the current GenLayer-enabled envi
 
 ## Checks performed
 
-- `python scripts/preflight.py`: PASS; `python scripts/preflight.py --final`: PASS.
+- `python scripts/preflight.py`: PASS.
 - `python -m compileall contracts scripts tests`: PASS.
 - `genvm-lint check contracts/nullproof.py`: PASS; 3 checks, contract validation passed (6 methods).
 - `genvm-lint check contracts/absence_gate.py`: PASS; 3 checks, contract validation passed (2 methods).
 - `gltest -q --tb=short -p no:cacheprovider`: PASS; 30 tests passed and the live Studionet handoff test was skipped.
+- GitHub Actions run 37133510537: completed successfully for the verified contract-source commit.
+- Raw GitHub URLs for all three fixture files at commit `2d71ecba5a7f3aef7e8a7914b58e96a9b339aae5`: HTTP 200.
 
 ## Still outstanding
 
-- Publish the completed source to the requested repository using an account with write permission.
-- Publish the pinned fixture commit and verify its raw GitHub fixture URLs resolve.
-- Verify effective Studionet network information and execute finalized contract deployments and live proofs.
-- Record only actual live evidence in `DEPLOYMENT.md`.
+- Execute finalized contract deployments and lifecycle proofs on stable Studionet (chain 61999), then record only actual evidence in `DEPLOYMENT.md`.
+- The available active CLI account is associated with another project context; obtain/select a NullProof-authorized funded Studionet signer before submitting live writes.

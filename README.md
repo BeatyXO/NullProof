@@ -175,4 +175,4 @@ Final submission gate:
 python scripts/preflight.py --final
 ```
 
-The final gate intentionally fails while fixture placeholders or deployment `PENDING` markers remain.
+The final gate verifies immutable fixture pinning, rejects unresolved live-proof language, and requires well-formed deployment addresses, transaction hashes, lifecycle IDs, observation hashes, timestamps, and rejection evidence. It remains blocked until real finalized Studionet evidence is recorded.
