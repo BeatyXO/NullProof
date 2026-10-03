@@ -18,19 +18,19 @@
 
 **Defense:** Source validation requires HTTPS and rejects credential-bearing authority plus localhost, loopback, common RFC1918 IPv4 and link-local IPv4 patterns.
 
-This is intentionally conservative, not a complete network-security parser; final runtime review should confirm GenLayer's own outbound-web sandbox protections.
+This is intentionally conservative, not a complete network-security parser. GenLayer documents `gl.nondet.web.get()` and `gl.nondet.web.request()` as outbound web access from nondeterministic blocks. The public runtime documentation reviewed for this build does not promise comprehensive SSRF filtering, redirect revalidation, or a body-size completeness signal. NullProof therefore does not claim the platform sandbox closes those gaps. The contract-level URL checks are defense in depth; operators should use public authoritative HTTPS endpoints. See [GenLayer Web Access](https://docs.genlayer.com/developers/intelligent-contracts/features/web-access) and [GenVM Configuration](https://docs.genlayer.com/validators/genvm-configuration).
 
 ## Incomplete representation masquerading as absence
 
 **Threat:** A page has pagination, partial results, truncation, or an obviously incomplete index but the model returns `NO_HIT`.
 
-**Defense:** The source prompt defines `NO_HIT` as a two-part claim: no qualifying item **and** sufficient completeness for the declared source scope. Partial/paginated uncertainty must become `AMBIGUOUS`.
+**Defense:** The source prompt defines `NO_HIT` as a two-part claim: no qualifying item **and** sufficient completeness for the declared source scope. The contract also forces `AMBIGUOUS` when fetched text contains explicit partial/pagination markers. Validators independently re-fetch and classify. These checks cannot detect every subtle or transport-level truncation; sources should expose a complete bounded index or explicit completeness signal.
 
 ## Oversize truncation
 
 **Threat:** Only the first part of a huge source is fed to the model, which then incorrectly certifies absence.
 
-**Defense:** NullProof does not truncate source content for negative classification. Responses above the fixed byte bound become `UNAVAILABLE` and cannot support absence.
+**Defense:** NullProof does not truncate the body it receives for negative classification. Bodies above the fixed byte bound become `UNAVAILABLE` and cannot support absence. The runtime documentation reviewed does not guarantee that upstream web access never truncates a response before exposing it to the contract. If a source or runtime silently truncates without an explicit signal or recognizable marker, this contract cannot prove the representation was complete; use a bounded source endpoint whose completeness is explicit.
 
 ## Fetch failure
 

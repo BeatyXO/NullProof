@@ -112,6 +112,42 @@ def test_schema_rejects_unsafe_or_non_https_urls(direct_vm, direct_deploy):
             c.create_query("x", "subject", "rule", raw, 0, 3600)
 
 
+def test_schema_rejects_invalid_modes_counts_and_text_bounds(direct_vm, direct_deploy):
+    c = deploy(direct_vm, direct_deploy)
+    for raw in ["[]", json.dumps([
+        {"source_id": f"s{i}", "url": f"https://registry.example/{i}",
+         "mode": "REQUIRED" if i == 0 else "OPTIONAL", "scope": "index"}
+        for i in range(9)
+    ])]:
+        with direct_vm.expect_revert():
+            c.create_query("x", "subject", "rule", raw, 0, 3600)
+
+    invalid_mode = json.dumps([
+        {"source_id": "reg", "url": URL, "mode": "MAYBE", "scope": "index"}
+    ])
+    with direct_vm.expect_revert("invalid source mode"):
+        c.create_query("x", "subject", "rule", invalid_mode, 0, 3600)
+
+    with direct_vm.expect_revert("subject length out of range"):
+        c.create_query("x", "s" * 901, "rule", sources(), 0, 3600)
+    with direct_vm.expect_revert("relevance_rule length out of range"):
+        c.create_query("x", "subject", "r" * 1801, sources(), 0, 3600)
+    long_scope = json.dumps([
+        {"source_id": "reg", "url": URL, "mode": "REQUIRED", "scope": "s" * 901}
+    ])
+    with direct_vm.expect_revert("source scope length out of range"):
+        c.create_query("x", "subject", "rule", long_scope, 0, 3600)
+
+
+def test_ttl_is_bounded_at_both_ends(direct_vm, direct_deploy):
+    c = deploy(direct_vm, direct_deploy)
+    assert create_query(c, ttl=60) > 0
+    assert create_query(c, ttl=604800) > 0
+    for ttl in (59, 604801):
+        with direct_vm.expect_revert("ttl_seconds out of range"):
+            create_query(c, ttl=ttl)
+
+
 def test_coverage_threshold_cannot_exceed_optional_sources(direct_vm, direct_deploy):
     c = deploy(direct_vm, direct_deploy)
     with direct_vm.expect_revert("min_optional_coverage exceeds optional source count"):
@@ -171,6 +207,26 @@ def test_unavailable_or_oversized_required_source_never_proves_absence(direct_vm
     assert c.get_observation(qid2, oid2)["sources"][0]["status_name"] == "UNAVAILABLE"
     assert c.get_observation(qid2, oid2)["status_name"] == "INDETERMINATE"
 
+    direct_vm.clear_mocks()
+    qid3 = create_query(c)
+    direct_vm.mock_web(r"registry\.example/recalls", {"status": 200, "body": ""})
+    oid3 = c.observe(qid3)
+    assert c.get_observation(qid3, oid3)["sources"][0]["status_name"] == "UNAVAILABLE"
+    assert c.get_observation(qid3, oid3)["status_name"] == "INDETERMINATE"
+
+
+def test_explicit_pagination_cannot_be_no_hit(direct_vm, direct_deploy):
+    c = deploy(direct_vm, direct_deploy)
+    qid = create_query(c)
+    partial = "Recall index. Some entries are omitted from this page and available through pagination."
+    direct_vm.mock_web(r"registry\.example/recalls", {"status": 200, "body": partial})
+    # Even a model that incorrectly proposes NO_HIT cannot turn explicit partial coverage into absence.
+    direct_vm.mock_llm(PROMPT, {"status": "NO_HIT", "note": "none found", "evidence_excerpt": ""})
+    oid = c.observe(qid)
+    obs = c.get_observation(qid, oid)
+    assert obs["sources"][0]["status_name"] == "AMBIGUOUS"
+    assert obs["status_name"] == "INDETERMINATE"
+
 
 def test_optional_unavailable_can_be_skipped_only_when_policy_allows(direct_vm, direct_deploy):
     # min_optional=0: required source alone is enough under the frozen policy.
@@ -213,6 +269,7 @@ def test_later_present_immediately_invalidates_earlier_fresh_absence(direct_vm, 
     absent_id = c.observe(qid)
     q = c.get_query(qid)
     absent = c.get_observation(qid, absent_id)
+    original_hash = absent["observation_hash"]
     assert c.is_absence_valid(qid, absent_id, q["definition_hash"], absent["observation_hash"]) is True
 
     direct_vm.clear_mocks()
@@ -220,6 +277,19 @@ def test_later_present_immediately_invalidates_earlier_fresh_absence(direct_vm, 
     present_id = c.observe(qid)
     assert c.get_observation(qid, present_id)["status_name"] == "PRESENT"
     assert c.is_absence_valid(qid, absent_id, q["definition_hash"], absent["observation_hash"]) is False
+    assert c.get_observation(qid, absent_id)["observation_hash"] == original_hash
+
+
+def test_observation_history_is_monotonic_and_append_only(direct_vm, direct_deploy):
+    c = deploy(direct_vm, direct_deploy)
+    qid = create_query(c)
+    mock_no_hit(direct_vm)
+    first = c.observe(qid)
+    first_before = c.get_observation(qid, first)
+    second = c.observe(qid)
+    assert (first, second) == (1, 2)
+    assert c.get_observation(qid, first) == first_before
+    assert c.get_observation(qid, second)["status_name"] == "ABSENT"
 
 
 def test_validator_independently_refetches_and_rejects_material_disagreement(direct_vm, direct_deploy):
@@ -232,6 +302,25 @@ def test_validator_independently_refetches_and_rejects_material_disagreement(dir
     direct_vm.clear_mocks()
     mock_hit(direct_vm)
     assert direct_vm.run_validator() is False
+
+
+def test_validator_rejects_leader_hit_when_it_sees_no_hit_and_ignores_prose_differences(direct_vm, direct_deploy):
+    c = deploy(direct_vm, direct_deploy)
+    qid = create_query(c)
+    mock_hit(direct_vm)
+    c.observe(qid)
+    direct_vm.clear_mocks()
+    mock_no_hit(direct_vm)
+    assert direct_vm.run_validator() is False
+
+    direct_vm.clear_mocks()
+    qid2 = create_query(c)
+    mock_no_hit(direct_vm)
+    c.observe(qid2)
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(r"registry\.example/recalls", {"status": 200, "body": NO_HIT_TEXT})
+    direct_vm.mock_llm(PROMPT, {"status": "NO_HIT", "note": "a different valid explanation", "evidence_excerpt": ""})
+    assert direct_vm.run_validator() is True
 
 
 def test_prompt_injection_text_does_not_change_protocol_boundary(direct_vm, direct_deploy):
@@ -261,6 +350,22 @@ def test_hit_requires_grounding_excerpt(direct_vm, direct_deploy):
     direct_vm.mock_web(r"registry\.example/recalls", {"status": 200, "body": HIT_TEXT})
     direct_vm.mock_llm(PROMPT, {"status": "HIT", "note": "hit", "evidence_excerpt": ""})
     with direct_vm.expect_revert("HIT requires evidence_excerpt"):
+        c.observe(qid)
+
+    direct_vm.clear_mocks()
+    qid2 = create_query(c)
+    direct_vm.mock_web(r"registry\.example/recalls", {"status": 200, "body": HIT_TEXT})
+    direct_vm.mock_llm(PROMPT, {"status": "HIT", "note": "forged excerpt", "evidence_excerpt": "fabricated Product X recall"})
+    with direct_vm.expect_revert("HIT evidence_excerpt must occur in fetched source"):
+        c.observe(qid2)
+
+
+def test_malformed_model_json_is_rejected(direct_vm, direct_deploy):
+    c = deploy(direct_vm, direct_deploy)
+    qid = create_query(c)
+    direct_vm.mock_web(r"registry\.example/recalls", {"status": 200, "body": NO_HIT_TEXT})
+    direct_vm.mock_llm(PROMPT, "{ malformed json")
+    with direct_vm.expect_revert():
         c.observe(qid)
 
 

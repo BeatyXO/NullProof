@@ -280,7 +280,32 @@ Return JSON only:
 """
 
 
-def canonical_source_analysis(raw, source: dict, source_digest: str, source_bytes: int) -> dict:
+def obvious_incompleteness_marker(source_text: str) -> bool:
+    text = clean(source_text).lower()
+    markers = (
+        "partial results",
+        "partial index",
+        "some entries are omitted",
+        "entries omitted from this page",
+        "available through pagination",
+        "next page",
+        "load more",
+        "show more results",
+        "truncated results",
+        "incomplete archive",
+        "page 1 of ",
+        "page 1/",
+    )
+    return any(marker in text for marker in markers)
+
+
+def canonical_source_analysis(
+    raw,
+    source: dict,
+    source_digest: str,
+    source_bytes: int,
+    source_text: str,
+) -> dict:
     if not isinstance(raw, dict):
         raise gl.vm.UserError("model source analysis must be an object")
     status = source_result_code(raw.get("status", ""))
@@ -294,6 +319,10 @@ def canonical_source_analysis(raw, source: dict, source_digest: str, source_byte
         excerpt = excerpt[:300]
     if status == SRC_HIT and excerpt == "":
         raise gl.vm.UserError("HIT requires evidence_excerpt")
+    if status == SRC_HIT and excerpt not in clean(source_text):
+        raise gl.vm.UserError("HIT evidence_excerpt must occur in fetched source")
+    if status == SRC_NO_HIT and obvious_incompleteness_marker(source_text):
+        status = SRC_AMBIGUOUS
     if status != SRC_HIT:
         excerpt = ""
     return {
@@ -460,7 +489,7 @@ class NullProof(gl.Contract):
                         build_source_prompt(subject, relevance_rule, source, text),
                         response_format="json",
                     )
-                    rows.append(canonical_source_analysis(model, source, digest, len(raw)))
+                    rows.append(canonical_source_analysis(model, source, digest, len(raw), text))
                 except gl.vm.UserError:
                     raise
                 except Exception:
@@ -497,7 +526,7 @@ class NullProof(gl.Contract):
                             build_source_prompt(subject, relevance_rule, source, text),
                             response_format="json",
                         )
-                        own.append(canonical_source_analysis(model, source, digest, len(raw)))
+                        own.append(canonical_source_analysis(model, source, digest, len(raw), text))
                     except gl.vm.UserError:
                         raise
                     except Exception:

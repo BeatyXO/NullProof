@@ -40,9 +40,10 @@ For each source, leader and validators independently:
 1. GET the exact URL;
 2. treat non-2xx, empty, or oversized representations as deterministic `UNAVAILABLE`;
 3. ask the model to classify the fetched representation as `HIT`, `NO_HIT`, or `AMBIGUOUS`;
-4. require a source-grounded excerpt internally for `HIT`;
-5. require the model to treat fetched text as untrusted data;
-6. derive the material source row.
+4. require a non-empty `HIT` excerpt that occurs in the fetched representation;
+5. force `AMBIGUOUS` when a proposed `NO_HIT` conflicts with explicit pagination or partial-result markers;
+6. require the model to treat fetched text as untrusted data;
+7. derive the material source row.
 
 A model cannot declare `UNAVAILABLE`; that state belongs to the fetch/bounds layer.
 
@@ -56,7 +57,7 @@ source mode
 source status
 ```
 
-This avoids requiring byte-identical dynamic web responses or identical LLM prose.
+This avoids requiring byte-identical dynamic web responses or identical LLM prose. It does not make arbitrary sources complete by assumption: source scopes must describe an authoritative bounded surface, and subtle or silent transport truncation remains outside the contract's ability to detect unless the source exposes an explicit completeness signal.
 
 Leader notes, excerpts, and source digests are not persisted as consensus-backed evidence.
 

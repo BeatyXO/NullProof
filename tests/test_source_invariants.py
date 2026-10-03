@@ -17,7 +17,8 @@ def test_consensus_is_independent_refetch_not_shape_only():
     assert "run_nondet_unsafe" in CORE
     assert "gl.nondet.web.get" in CORE
     assert "gl.nondet.exec_prompt" in CORE
-    assert "own = derive()" in CORE
+    assert CORE.count("gl.nondet.web.get(source[\"url\"])") == 2
+    assert CORE.count("gl.nondet.exec_prompt(") == 2
     assert "material_source_payload(proposed) == material_source_payload(own)" in CORE
 
 

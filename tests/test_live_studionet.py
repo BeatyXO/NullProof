@@ -4,7 +4,7 @@ This is skipped in ordinary pytest because it requires authenticated/funded stab
 Studionet accounts and the current compatible GenLayer client/fee lifecycle.
 
 Immutable fixtures:
-https://raw.githubusercontent.com/BeatyXO/NullProof/FIXTURE_COMMIT_PLACEHOLDER/fixtures/
+https://raw.githubusercontent.com/BeatyXO/NullProof/2d71ecba5a7f3aef7e8a7914b58e96a9b339aae5/fixtures/
 
 Required live proof on Studionet / chain 61999:
 1. verify effective network before writes;

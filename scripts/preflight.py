@@ -92,6 +92,7 @@ text = "\n".join(
     for p in ROOT.rglob("*")
     if p.is_file()
     and p.resolve() != Path(__file__).resolve()
+    and p.resolve() != (ROOT / "scripts/pin_fixture_commit.py").resolve()
     and p.suffix in {".md", ".py", ".yaml", ".yml", ".txt"}
 )
 if "https://studio.genlayer.com/api" not in text:
